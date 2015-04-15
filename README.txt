@@ -1,5 +1,7 @@
-# stata-subsets
-Generate all subsets in Stata (for combinatorial tests, for example)
+Stata subsets
+-------------
+
+Generate inclusion variables for all (n choose k) subsets of size k from n records (for combinatorial tests, for example):
 
  The idea is that you have an indicator variable taking values 0 or 1.
 
