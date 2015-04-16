@@ -44,13 +44,13 @@ cl ksubset.cpp stplugin.c /LD /MD /link /out:../ksubset.plugin
 
 using namespace std;
 
+// negative return value indicates error!
 ST_int findnext(ST_int start, ST_int lastrow, int needle) {
 	ST_double v;
 	int bit;
 	ST_int j = start;
 	ST_retcode rc;
 
-	//  find first in group zero
 	while (j <= lastrow) {
 		if (SF_ifobs(j)) {
 
@@ -60,7 +60,7 @@ ST_int findnext(ST_int start, ST_int lastrow, int needle) {
 
 			if (bit != 0 && bit != 1) {
 				SF_error("Group number should be 0 or 1!\n");
-				return(-1);
+				return(-420);
 			}
 
 			if (bit == needle) {
@@ -69,7 +69,7 @@ ST_int findnext(ST_int start, ST_int lastrow, int needle) {
 		}
 		else {
 			SF_error("Sorry but non-trivial 'if ...' conditions are not supported.\n");
-			return(-1);
+			return(-197);
 		}
 		j++;
 	}
@@ -92,37 +92,41 @@ STDLL stata_call(int argc, char *argv[])
 
 	if (firstrow > 1 || lastrow < SF_nobs() ) {
 		SF_error("Sorry but input ranges are experimental and disabled.\n");
-		return(666);
+		return(197);
 	}
 	
 	// find the first 0 (possibly it is the first)
 	ST_int first0 = findnext(firstrow, lastrow, 0);
 	
-	// return if error
-	if (first0 == -1) return (666); // TODO: lookup more appropriate error
-
+	// negative return value indicates error!
+	if (first0 < 0) return (-first0);
 
 	// there is at most one zero, and it is already at the end of the dataset
 	if (first0 >= lastrow) {
 		SF_error("No more subsets.\n");
-		return(103);
+		return(103); // this is a bad error code!
 	}
 	
 	// first0 < lastrow now
 	
 	// find the first occurence of 1 AFTER that.
 	ST_int l = findnext(first0+1, lastrow, 1);
-	if (l == -1) return (666); // TODO: lookup more appropriate error
+
+	// negative return value indicates error!
+	if (l < 0) return (-l);
 
 	if (l > lastrow) { // there are no 1s to right of first 0
 		SF_error("No more subsets.\n");
+
+		// TODO: This is a bad choice of error code -- it is supposed to mean
+		// "too many variables specified"!
 		return(103);
 	}
 
 	// l should be at least firstrow+1!
 	if (l <= firstrow) {
 		SF_error("My math is broken :(\n");
-		return(666);  // TODO: lookup more appropriate error
+		return(666);
 	}
 
 
